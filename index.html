@@ -1,0 +1,1666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Birdal — Animator & Filmmaker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;1,300&family=Noto+Sans+JP:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a08;
+    --surface: #111110;
+    --border: #2a2a26;
+    --accent: #e8c547;
+    --accent2: #ff6b35;
+    --text: #e8e4d8;
+    --muted: #6b6b62;
+    --tag-bg: #1c1c18;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* GRAIN OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.4;
+  }
+
+  /* SCANLINES */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.03) 2px,
+      rgba(0,0,0,0.03) 4px
+    );
+    pointer-events: none;
+    z-index: 9998;
+  }
+
+  /* HERO */
+  .hero {
+    min-height: 100svh;
+    display: grid;
+    grid-template-rows: 1fr auto;
+    padding: 2rem 1.5rem 1.5rem;
+    position: relative;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background: 
+      radial-gradient(ellipse 60% 50% at 80% 20%, rgba(232,197,71,0.06) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 60% at 10% 80%, rgba(255,107,53,0.04) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .hero-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .status-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--tag-bg);
+    border: 1px solid var(--border);
+    padding: 0.35rem 0.75rem;
+    border-radius: 100px;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #4ade80;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .location-tag {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+  }
+
+  .hero-center {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 3rem 0 2rem;
+  }
+
+  .eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.2s forwards;
+  }
+
+  .hero-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(4.5rem, 18vw, 7rem);
+    line-height: 0.9;
+    letter-spacing: 0.02em;
+    color: var(--text);
+    opacity: 0;
+    animation: fadeUp 0.8s 0.35s forwards;
+  }
+
+  .hero-name span {
+    color: var(--accent);
+    display: block;
+  }
+
+  .hero-kanji {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 0.3em;
+    margin-top: 1rem;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.5s forwards;
+  }
+
+  .hero-tagline {
+    font-size: 12px;
+    color: var(--muted);
+    max-width: 280px;
+    margin-top: 1.5rem;
+    font-style: italic;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.65s forwards;
+    line-height: 1.8;
+  }
+
+  .hero-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.8s forwards;
+  }
+
+  .scroll-hint {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .scroll-hint::before {
+    content: '';
+    width: 1px;
+    height: 40px;
+    background: linear-gradient(to bottom, var(--accent), transparent);
+  }
+
+  .hero-cta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: flex-end;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.25rem;
+    border-radius: 4px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-decoration: none;
+    transition: all 0.2s;
+    cursor: pointer;
+    border: none;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: var(--bg);
+    font-weight: bold;
+  }
+
+  .btn-primary:hover {
+    background: #f0d060;
+    transform: translateY(-1px);
+  }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* SECTION COMMON */
+  section {
+    padding: 3rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-label {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ABOUT */
+  .about-text {
+    font-size: 14px;
+    line-height: 1.9;
+    color: #c8c4b8;
+    max-width: 420px;
+  }
+
+  .about-text strong {
+    color: var(--accent);
+    font-weight: 400;
+  }
+
+  .about-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+    margin-top: 2rem;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .stat {
+    background: var(--surface);
+    padding: 1.2rem 1rem;
+  }
+
+  .stat-number {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.2rem;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    margin-top: 0.25rem;
+  }
+
+  /* SKILLS */
+  .skills-grid {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .skill-group {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1.25rem;
+  }
+
+  .skill-group-title {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .tag {
+    background: var(--tag-bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 11px;
+    padding: 0.3rem 0.65rem;
+    border-radius: 3px;
+    letter-spacing: 0.03em;
+  }
+
+  .tag.highlight {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* PROJECTS */
+  .projects-list {
+    display: grid;
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .project-item {
+    background: var(--surface);
+    padding: 1.5rem 1.25rem;
+    position: relative;
+    transition: background 0.2s;
+  }
+
+  .project-item:hover {
+    background: #161614;
+  }
+
+  .project-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--accent);
+    transform: scaleY(0);
+    transition: transform 0.2s;
+    transform-origin: bottom;
+  }
+
+  .project-item:hover::before {
+    transform: scaleY(1);
+  }
+
+  .project-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+    gap: 1rem;
+  }
+
+  .project-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    letter-spacing: 0.04em;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .project-year {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+    margin-top: 0.2rem;
+  }
+
+  .project-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.7;
+    margin-bottom: 0.75rem;
+  }
+
+  .project-tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+  }
+
+  .project-tool {
+    font-size: 10px;
+    color: var(--accent2);
+    letter-spacing: 0.05em;
+    background: rgba(255,107,53,0.07);
+    border: 1px solid rgba(255,107,53,0.2);
+    padding: 0.2rem 0.5rem;
+    border-radius: 2px;
+  }
+
+  /* CONTACT */
+  .contact-grid {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .contact-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    text-decoration: none;
+    color: var(--text);
+    transition: all 0.2s;
+  }
+
+  .contact-item:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .contact-icon {
+    font-size: 1.2rem;
+    width: 24px;
+    text-align: center;
+  }
+
+  .contact-label {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    display: block;
+    margin-bottom: 0.1rem;
+  }
+
+  .contact-value {
+    font-size: 13px;
+  }
+
+  /* VIDEO EMBED */
+  .video-wrapper {
+    position: relative;
+    padding-bottom: 56.25%; /* 16:9 */
+    height: 0;
+    overflow: hidden;
+    border-radius: 4px;
+    background: #000;
+    margin-bottom: 1rem;
+  }
+
+  .video-wrapper iframe {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    border: none;
+  }
+
+  .video-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #0d0d0b;
+    border: 1px dashed var(--border);
+    border-radius: 4px;
+    cursor: pointer;
+    gap: 0.5rem;
+    transition: border-color 0.2s;
+  }
+
+  .video-placeholder:hover {
+    border-color: var(--accent);
+  }
+
+  .video-placeholder .vp-icon {
+    width: 44px;
+    height: 44px;
+    border: 1.5px solid var(--muted);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: var(--muted);
+  }
+
+  .video-placeholder .vp-text {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* FOOTER */
+  footer {
+    padding: 2rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .footer-left {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+
+  .footer-right {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  /* REEL BUTTON */
+  .reel-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 1rem 1.25rem;
+    background: rgba(232,197,71,0.05);
+    border: 1px solid rgba(232,197,71,0.25);
+    border-radius: 4px;
+    color: var(--accent);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-decoration: none;
+    margin-top: 1.5rem;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+
+  .reel-btn:hover {
+    background: rgba(232,197,71,0.1);
+    border-color: var(--accent);
+  }
+
+  .play-icon {
+    width: 28px;
+    height: 28px;
+    border: 1.5px solid var(--accent);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+  }
+
+  /* NAV DOTS */
+  .nav-dots {
+    position: fixed;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    z-index: 100;
+  }
+
+  .nav-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: all 0.3s;
+    cursor: pointer;
+  }
+
+  .nav-dot.active {
+    background: var(--accent);
+    transform: scale(1.4);
+  }
+
+  /* DIVIDER */
+  .divider {
+    height: 1px;
+    background: linear-gradient(to right, var(--accent), transparent);
+    margin: 1.5rem 0;
+    opacity: 0.3;
+  }
+
+  /* ── GAME SECTION ───────────────────────── */
+  .game-frame {
+    background: #0d001f;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 12px 12px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .game-frame::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 70% 50% at 50% 0%, rgba(192,132,252,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .game-hud {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .game-hud-box {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid #2a1a4a;
+    border-radius: 4px;
+    padding: 5px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    min-width: 58px;
+  }
+
+  .game-hud-label {
+    font-size: 7px;
+    color: #c084fc;
+    letter-spacing: 0.1em;
+    font-family: 'Press Start 2P', monospace;
+  }
+
+  .game-hud-val {
+    font-size: 12px;
+    color: #ffe566;
+    font-family: 'Press Start 2P', monospace;
+  }
+
+  .game-visa-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+  }
+
+  .game-visa-label {
+    font-size: 6px;
+    color: #ff6eb4;
+    font-family: 'Press Start 2P', monospace;
+    text-align: center;
+    line-height: 1.6;
+  }
+
+  .game-visa-track {
+    width: 100%;
+    height: 10px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid #2a1a4a;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .game-visa-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ff6eb4, #c084fc);
+    border-radius: 2px;
+    width: 0%;
+    transition: width 0.3s ease;
+    box-shadow: 0 0 6px #ff6eb4;
+  }
+
+  #gameCanvas {
+    display: block;
+    width: 100%;
+    border-radius: 6px;
+    border: 2px solid #2a1a4a;
+    box-shadow: 0 0 24px rgba(192,132,252,0.15);
+    touch-action: none;
+    cursor: none;
+  }
+
+  .game-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(13,0,31,0.93);
+    border-radius: 6px;
+    padding: 20px 16px;
+    text-align: center;
+    gap: 12px;
+    backdrop-filter: blur(4px);
+  }
+
+  .game-overlay.g-hidden { display: none; }
+
+  .g-emoji { font-size: 36px; line-height: 1; }
+
+  .g-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 12px;
+    color: #ffe566;
+    line-height: 1.6;
+  }
+
+  .g-title-jp {
+    display: block;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-weight: 700;
+    font-size: 10px;
+    color: #c084fc;
+    margin-top: 3px;
+  }
+
+  .g-sub {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 6px;
+    color: #c8ffd4;
+    line-height: 2.2;
+    opacity: 0.85;
+    max-width: 260px;
+  }
+
+  .g-sub-jp {
+    display: block;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-weight: 400;
+    font-size: 10px;
+    color: #66eeff;
+    margin-top: 4px;
+  }
+
+  .g-chips {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .g-chip {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 6px;
+    padding: 4px 7px;
+    border-radius: 2px;
+    border: 1px solid;
+  }
+
+  .g-chip-pink { color: #ff6eb4; border-color: #ff6eb4; background: rgba(255,110,180,0.08); }
+  .g-chip-cyan { color: #66eeff; border-color: #66eeff; background: rgba(102,238,255,0.08); }
+  .g-chip-yellow { color: #ffe566; border-color: #ffe566; background: rgba(255,229,102,0.08); }
+
+  .g-score { font-family: 'Press Start 2P', monospace; font-size: 20px; color: #ffe566; text-shadow: 0 0 16px #ffe566; }
+
+  .g-btn {
+    background: #ff6eb4;
+    color: #0d001f;
+    border: none;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    padding: 11px 18px;
+    cursor: pointer;
+    border-radius: 3px;
+    box-shadow: 0 4px 0 #9a0048, 0 0 16px rgba(255,110,180,0.35);
+    transition: all 0.1s;
+    letter-spacing: 0.05em;
+    line-height: 1.6;
+  }
+
+  .g-btn:active { transform: translateY(4px); box-shadow: none; }
+  .g-btn.g-green { background: #66ff99; box-shadow: 0 4px 0 #008830, 0 0 16px rgba(102,255,153,0.35); }
+  .g-btn.g-cyan { background: #66eeff; box-shadow: 0 4px 0 #005566, 0 0 16px rgba(102,238,255,0.3); font-size: 7px; padding: 8px 14px; }
+
+  .g-hint {
+    font-size: 7px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-align: center;
+    margin-top: 8px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* ── CV SECTION ─────────────────────────── */
+  .cv-wrapper {
+    position: relative;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    background: #0d0d0b;
+  }
+
+  .cv-img {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 520px;
+    object-fit: contain;
+    background: #fff;
+  }
+
+  .cv-blur-overlay {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 45%;
+    background: linear-gradient(to bottom, transparent, var(--bg) 90%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    padding-bottom: 1.5rem;
+    gap: 0.75rem;
+  }
+
+  .cv-lock-text {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-align: center;
+    line-height: 1.8;
+  }
+
+  .cv-lock-text span {
+    display: block;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .cv-download-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.4rem;
+    background: var(--accent);
+    color: var(--bg);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.08em;
+    border-radius: 4px;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 0 20px rgba(232,197,71,0.25);
+  }
+
+  .cv-download-btn:hover {
+    background: #f0d060;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 24px rgba(232,197,71,0.35);
+  }
+
+  .cv-placeholder {
+    width: 100%;
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    border: 2px dashed var(--border);
+    border-radius: 6px;
+    color: var(--muted);
+    padding: 2rem;
+    text-align: center;
+  }
+
+  .cv-placeholder-icon { font-size: 2.5rem; opacity: 0.4; }
+  .cv-placeholder-text { font-size: 11px; line-height: 2; letter-spacing: 0.05em; }
+  .cv-placeholder-jp { font-family: 'Noto Sans JP', sans-serif; font-size: 12px; color: var(--muted); opacity: 0.7; }
+
+</style>
+</head>
+<body>
+
+<!-- NAV DOTS -->
+<nav class="nav-dots" id="navDots">
+  <div class="nav-dot active" onclick="scrollTo('#hero')"></div>
+  <div class="nav-dot" onclick="scrollTo('#about')"></div>
+  <div class="nav-dot" onclick="scrollTo('#skills')"></div>
+  <div class="nav-dot" onclick="scrollTo('#projects')"></div>
+  <div class="nav-dot" onclick="scrollTo('#game')"></div>
+  <div class="nav-dot" onclick="scrollTo('#cv')"></div>
+  <div class="nav-dot" onclick="scrollTo('#contact')"></div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="hero">
+  <div class="hero-bg"></div>
+
+  <div class="hero-top">
+    <div class="status-pill">
+      <div class="status-dot"></div>
+      AVAILABLE FOR WORK
+    </div>
+    <div class="location-tag">東京 TOKYO ◆ 2025</div>
+  </div>
+
+  <div class="hero-center">
+    <div class="eyebrow">✦ 2D Animator · Filmmaker · AI Artist</div>
+    <h1 class="hero-name">
+      BİR<span>DAL</span>
+    </h1>
+    <div class="hero-kanji">アニメーター　映像制作者</div>
+    <p class="hero-tagline">
+      Crafting animated worlds through traditional rigged animation, AI-powered tools, and a cinematic eye trained on story.
+    </p>
+  </div>
+
+  <div class="hero-bottom">
+    <div class="scroll-hint">SCROLL</div>
+    <div class="hero-cta">
+      <a href="#projects" class="btn btn-primary">View Work ↓</a>
+      <a href="#contact" class="btn btn-secondary">Let's Talk</a>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="section-label">01 — About</div>
+  <p class="about-text">
+    Tokyo-based <strong>2D animator and filmmaker</strong> with expertise across the full animation pipeline — from rigged character animation to AI-assisted production workflows.<br><br>
+    Currently pursuing animation and motion graphics opportunities in Tokyo, focused on <strong>boutique studios and creative production houses</strong> where storytelling depth matters.
+  </p>
+
+  <div class="about-stats">
+    <div class="stat">
+      <div class="stat-number">5+</div>
+      <div class="stat-label">YEARS ANIMATING</div>
+    </div>
+    <div class="stat">
+      <div class="stat-number">10+</div>
+      <div class="stat-label">PROJECTS SHIPPED</div>
+    </div>
+    <div class="stat">
+      <div class="stat-number">AI</div>
+      <div class="stat-label">EARLY ADOPTER</div>
+    </div>
+    <div class="stat">
+      <div class="stat-number">TR/JP</div>
+      <div class="stat-label">CULTURAL LENS</div>
+    </div>
+  </div>
+
+  <a href="#" class="reel-btn" id="reelBtn">
+    <div class="play-icon">▶</div>
+    WATCH DEMO REEL
+  </a>
+</section>
+
+<!-- SKILLS -->
+<section id="skills">
+  <div class="section-label">02 — Skills & Tools</div>
+  <div class="skills-grid">
+
+    <div class="skill-group">
+      <div class="skill-group-title">Animation & Motion</div>
+      <div class="tags">
+        <span class="tag highlight">Toon Boom Harmony</span>
+        <span class="tag highlight">After Effects</span>
+        <span class="tag highlight">Moho</span>
+        <span class="tag highlight">Spine</span>
+        <span class="tag">Rigged 2D Animation</span>
+        <span class="tag">Motion Graphics</span>
+        <span class="tag">Compositing</span>
+      </div>
+    </div>
+
+    <div class="skill-group">
+      <div class="skill-group-title">AI Generation Tools</div>
+      <div class="tags">
+        <span class="tag highlight">Seedance 1.5</span>
+        <span class="tag highlight">Kling AI</span>
+        <span class="tag">Runway</span>
+        <span class="tag">Veo3</span>
+        <span class="tag">Leonardo AI</span>
+        <span class="tag">Seedream</span>
+        <span class="tag">ComfyUI</span>
+      </div>
+    </div>
+
+    <div class="skill-group">
+      <div class="skill-group-title">Development & Interactive</div>
+      <div class="tags">
+        <span class="tag highlight">Unity</span>
+        <span class="tag">Interactive Media</span>
+      </div>
+    </div>
+
+    <div class="skill-group">
+      <div class="skill-group-title">Languages</div>
+      <div class="tags">
+        <span class="tag">Turkish (Native)</span>
+        <span class="tag">English (B1–B2)</span>
+        <span class="tag">Japanese (N4–N3)</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- PROJECTS -->
+<section id="projects">
+  <div class="section-label">03 — Selected Work</div>
+  <div class="projects-list">
+
+    <div class="project-item">
+      <!-- VIDEO: YouTube linkinle değiştir → https://youtu.be/XXXXXXXXXXX → embed/XXXXXXXXXXX -->
+      <div class="video-wrapper">
+        <div class="video-placeholder" onclick="loadVideo(this, 'YOUTUBE_ID_1')">
+          <div class="vp-icon">▶</div>
+          <div class="vp-text">Hikari 光 — Oynat</div>
+        </div>
+      </div>
+      <div class="project-header">
+        <div class="project-title">HIKARI 光</div>
+        <div class="project-year">2025</div>
+      </div>
+      <div class="project-desc">
+        AI short film. A solitary figure cuts the city's electricity to unveil a forgotten night sky. Targeted for World AI Film Festival Kyoto 2026.
+      </div>
+      <div class="project-tools">
+        <span class="project-tool">Seedance 1.5</span>
+        <span class="project-tool">After Effects</span>
+        <span class="project-tool">AI Direction</span>
+        <span class="project-tool">Short Film</span>
+      </div>
+    </div>
+
+    <div class="project-item">
+      <div class="video-wrapper">
+        <div class="video-placeholder" onclick="loadVideo(this, 'YOUTUBE_ID_2')">
+          <div class="vp-icon">▶</div>
+          <div class="vp-text">Kürsü Savaşçıları — Oynat</div>
+        </div>
+      </div>
+      <div class="project-header">
+        <div class="project-title">KÜRSÜ SAVAŞÇILARI</div>
+        <div class="project-year">2025</div>
+      </div>
+      <div class="project-desc">
+        Anime-style satirical parody reimagining Turkish parliament debates as a shōnen battle sequence. Original character designs and fight choreography.
+      </div>
+      <div class="project-tools">
+        <span class="project-tool">Toon Boom</span>
+        <span class="project-tool">After Effects</span>
+        <span class="project-tool">Parody / Satire</span>
+        <span class="project-tool">Anime Style</span>
+      </div>
+    </div>
+
+    <div class="project-item">
+      <div class="video-wrapper">
+        <div class="video-placeholder" onclick="loadVideo(this, 'YOUTUBE_ID_3')">
+          <div class="vp-icon">▶</div>
+          <div class="vp-text">Vizonzeka — Oynat</div>
+        </div>
+      </div>
+      <div class="project-header">
+        <div class="project-title">VİZONZEKA</div>
+        <div class="project-year">2025</div>
+      </div>
+      <div class="project-desc">
+        AI parody of the classic Turkish film Vizontele. The iconic television replaced with an AI robot using frame-accurate object replacement and compositing.
+      </div>
+      <div class="project-tools">
+        <span class="project-tool">Kling AI</span>
+        <span class="project-tool">After Effects</span>
+        <span class="project-tool">Object Replacement</span>
+        <span class="project-tool">Parody</span>
+      </div>
+    </div>
+
+    <div class="project-item">
+      <div class="video-wrapper">
+        <div class="video-placeholder" onclick="loadVideo(this, 'YOUTUBE_ID_4')">
+          <div class="vp-icon">▶</div>
+          <div class="vp-text">İçindeki Dünya — Oynat</div>
+        </div>
+      </div>
+      <div class="project-header">
+        <div class="project-title">İÇİNDEKİ DÜNYA</div>
+        <div class="project-year">2024</div>
+      </div>
+      <div class="project-desc">
+        Miyazaki-influenced animated short. A man discovers microscopic civilizations living inside his own body. Developed for AI animation festivals in Japan.
+      </div>
+      <div class="project-tools">
+        <span class="project-tool">Leonardo AI</span>
+        <span class="project-tool">Seedance 1.5 Pro</span>
+        <span class="project-tool">ComfyUI</span>
+        <span class="project-tool">Festival Film</span>
+      </div>
+    </div>
+
+    <div class="project-item">
+      <div class="video-wrapper">
+        <div class="video-placeholder" onclick="loadVideo(this, 'YOUTUBE_ID_5')">
+          <div class="vp-icon">▶</div>
+          <div class="vp-text">Children's Song Series — Oynat</div>
+        </div>
+      </div>
+      <div class="project-header">
+        <div class="project-title">CHILDREN'S SONG SERIES</div>
+        <div class="project-year">2025</div>
+      </div>
+      <div class="project-desc">
+        Educational animated song videos for young audiences. Custom character with distinctive orange hair and purple eyes — from concept to final render.
+      </div>
+      <div class="project-tools">
+        <span class="project-tool">Seedance 1.5</span>
+        <span class="project-tool">After Effects</span>
+        <span class="project-tool">Character Design</span>
+        <span class="project-tool">Educational</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- GAME -->
+<section id="game">
+  <div class="section-label">04 — Play A Game</div>
+  <p style="font-size:12px; color:var(--muted); margin-bottom:1.2rem; line-height:1.8; max-width:340px;">
+    Birdal's animation files are falling! Catch them all to extend his visa — and hire him. 🎮<br>
+    <span style="font-family:'Noto Sans JP',sans-serif; font-size:11px; color:#c084fc;">ファイルをキャッチしてビルダルを採用せよ！</span>
+  </p>
+
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+
+  <div class="game-frame">
+    <div class="game-hud">
+      <div class="game-hud-box">
+        <div class="game-hud-label">SCORE</div>
+        <div class="game-hud-val" id="gScore">0</div>
+      </div>
+      <div class="game-visa-wrap">
+        <div class="game-visa-label">⏳ BIRDAL'S VISA<br><span style="font-family:'Noto Sans JP';font-weight:700;">ビザ期限</span></div>
+        <div class="game-visa-track"><div class="game-visa-fill" id="gVisaFill"></div></div>
+      </div>
+      <div class="game-hud-box">
+        <div class="game-hud-label">LIVES</div>
+        <div class="game-hud-val" id="gLives">❤❤❤</div>
+      </div>
+    </div>
+
+    <div style="position:relative;">
+      <canvas id="gameCanvas"></canvas>
+
+      <!-- START -->
+      <div class="game-overlay" id="gScreenStart">
+        <div class="g-emoji">📁</div>
+        <div class="g-title">CATCH THE FILES!<span class="g-title-jp">ファイルをキャッチせよ！</span></div>
+        <div class="g-sub">
+          Birdal's files are falling from the sky!<br>
+          Catch them to fill his VISA bar.<br>
+          Don't let the bugs through — or he leaves Tokyo!
+          <span class="g-sub-jp">ビルダルのビザを延長しよう！</span>
+        </div>
+        <div class="g-chips">
+          <div class="g-chip g-chip-pink">📁 +10</div>
+          <div class="g-chip g-chip-cyan">🎬 REEL +25</div>
+          <div class="g-chip g-chip-yellow">⚡ COMBO!</div>
+        </div>
+        <button class="g-btn" onclick="gStart()">▶ START MISSION</button>
+      </div>
+
+      <!-- GAME OVER -->
+      <div class="game-overlay g-hidden" id="gScreenOver">
+        <div class="g-emoji">😱</div>
+        <div class="g-title">VISA EXPIRED!<span class="g-title-jp">ビザが切れた…</span></div>
+        <div class="g-sub">
+          Birdal has to leave Tokyo...<br>
+          HR-san, you failed him! 😢
+          <span class="g-sub-jp">もう一度やり直してください！</span>
+        </div>
+        <div class="g-score" id="gFinalScore">0 pts</div>
+        <button class="g-btn" onclick="gStart()">↺ TRY AGAIN</button>
+      </div>
+
+      <!-- WIN -->
+      <div class="game-overlay g-hidden" id="gScreenWin">
+        <div class="g-emoji">🎉</div>
+        <div class="g-title">HIRED!<span class="g-title-jp">採用決定！おめでとう！</span></div>
+        <div class="g-sub">
+          You saved Birdal's visa AND hired him!<br>
+          Tokyo's best animator is all yours. ✨
+          <span class="g-sub-jp">東京最高のアニメーターをゲット！</span>
+        </div>
+        <div class="g-score" id="gWinScore">0 pts</div>
+        <div class="g-chips">
+          <div class="g-chip g-chip-pink">2D Animation</div>
+          <div class="g-chip g-chip-cyan">AI Tools</div>
+          <div class="g-chip g-chip-yellow">Tokyo Based</div>
+        </div>
+        <button class="g-btn g-green" onclick="gContact()">✉ CONTACT BIRDAL</button>
+        <button class="g-btn g-cyan" onclick="gStart()">↺ PLAY AGAIN</button>
+      </div>
+    </div>
+
+    <div class="g-hint">DRAG / TOUCH TO MOVE &nbsp;·&nbsp; タッチして動かそう</div>
+  </div>
+</section>
+
+<!-- CV -->
+<section id="cv">
+  <div class="section-label">05 — Curriculum Vitae</div>
+  <p style="font-size:12px; color:var(--muted); margin-bottom:1.2rem; line-height:1.8; max-width:340px;">
+    Download my Japanese CV (履歴書) — or preview it below.
+    <span style="display:block; font-family:'Noto Sans JP',sans-serif; font-size:11px; margin-top:2px;">履歴書のプレビューとダウンロード</span>
+  </p>
+
+  <!-- ─────────────────────────────────────────────────────
+       CV FOTOĞRAFINI EKLEMEK İÇİN:
+       1. CV fotoğrafını (JPG/PNG) bu HTML ile aynı klasöre koy
+       2. Aşağıdaki  src="cv.jpg"  kısmını kendi dosya adınla değiştir
+       3. href="cv.jpg" kısmını da aynı şekilde güncelle
+  ──────────────────────────────────────────────────────── -->
+
+  <div class="cv-wrapper" id="cvWrapper">
+
+    <!-- CV resmi varsa bu kısmı göster, yoksa placeholder göster -->
+    <img
+      class="cv-img"
+      id="cvImage"
+      src="cv.jpg"
+      alt="Birdal — 履歴書 / CV"
+      onerror="this.style.display='none'; document.getElementById('cvPlaceholder').style.display='flex'; document.getElementById('cvBlurOverlay').style.display='none';"
+    />
+
+    <!-- Resim bulunamazsa bu gösterilir -->
+    <div class="cv-placeholder" id="cvPlaceholder" style="display:none;">
+      <div class="cv-placeholder-icon">📄</div>
+      <div class="cv-placeholder-text">
+        CV image not found.<br>
+        Place <strong style="color:var(--accent)">cv.jpg</strong> next to this HTML file.
+      </div>
+      <div class="cv-placeholder-jp">履歴書の画像を同じフォルダに入れてください</div>
+      <a class="cv-download-btn" href="cv.jpg" download="Birdal_CV.jpg">
+        ↓ DOWNLOAD CV &nbsp;·&nbsp; 履歴書ダウンロード
+      </a>
+    </div>
+
+    <!-- Blur + download overlay (resim varken gösterilir) -->
+    <div class="cv-blur-overlay" id="cvBlurOverlay">
+      <div class="cv-lock-text">
+        Full CV available to download
+        <span>履歴書のフルバージョンをダウンロード</span>
+      </div>
+      <a class="cv-download-btn" href="cv.jpg" download="Birdal_CV.jpg">
+        ↓ DOWNLOAD CV &nbsp;·&nbsp; 履歴書ダウンロード
+      </a>
+    </div>
+
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="section-label">06 — Get In Touch</div>
+  <p style="font-size:12px; color:var(--muted); margin-bottom:1.5rem; max-width:300px; line-height:1.8;">
+    Open to animation, motion graphics, and AI-assisted production roles in Tokyo. Let's make something memorable.
+  </p>
+
+  <div class="contact-grid">
+    <a href="/cdn-cgi/l/email-protection#ccb5a3b9be8ca9a1ada5a0e2afa3a1" class="contact-item" id="emailLink">
+      <div class="contact-icon">✉</div>
+      <div>
+        <span class="contact-label">EMAIL</span>
+        <span class="contact-value"><span class="__cf_email__" data-cfemail="fc8593898ebc99919d9590d29f9391">[email&#160;protected]</span></span>
+      </div>
+    </a>
+    <a href="https://linkedin.com" class="contact-item" target="_blank" id="linkedinLink">
+      <div class="contact-icon">in</div>
+      <div>
+        <span class="contact-label">LINKEDIN</span>
+        <span class="contact-value">https://www.linkedin.com/in/birdaldc/</span>
+      </div>
+    </a>
+    <a href="https://youtube.com" class="contact-item" target="_blank" id="youtubeLink">
+      <div class="contact-icon">▶</div>
+      <div>
+        <span class="contact-label">DEMO REEL / YOUTUBE</span>
+        <span class="contact-value">https://vimeo.com/1126691055</span>
+      </div>
+    </a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-left">© 2025 BİRDAL — ALL RIGHTS RESERVED</div>
+  <div class="footer-right">東京制作</div>
+</footer>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+  // VIDEO LAZY LOAD — tıklayınca YouTube iframe yüklenir (sayfa hızı için)
+  function loadVideo(placeholder, youtubeId) {
+    if (youtubeId.startsWith('YOUTUBE_ID')) {
+      alert('Bu videonun YouTube ID\'sini HTML dosyasında güncellemeyi unutma!');
+      return;
+    }
+    const wrapper = placeholder.parentElement;
+    const iframe = document.createElement('iframe');
+    iframe.src = `https://www.youtube.com/embed/${youtubeId}?autoplay=1&rel=0`;
+    iframe.allow = 'autoplay; encrypted-media; picture-in-picture';
+    iframe.allowFullscreen = true;
+    iframe.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;border:none;border-radius:4px;';
+    wrapper.innerHTML = '';
+    wrapper.appendChild(iframe);
+  }
+
+  // NAV DOT TRACKING
+  const sections = ['hero','about','skills','projects','game','cv','contact'];
+  const dots = document.querySelectorAll('.nav-dot');
+
+  function updateDots() {
+    const scrollY = window.scrollY + window.innerHeight / 2;
+    let active = 0;
+    sections.forEach((id, i) => {
+      const el = document.getElementById(id);
+      if (el && el.offsetTop <= scrollY) active = i;
+    });
+    dots.forEach((d, i) => d.classList.toggle('active', i === active));
+  }
+
+  window.addEventListener('scroll', updateDots, { passive: true });
+
+  function scrollTo(hash) {
+    const el = document.querySelector(hash);
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  // INTERSECTION OBSERVER for fade-in
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.style.opacity = '1';
+        e.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.skill-group, .project-item, .contact-item, .about-stats').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(20px)';
+    el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+    observer.observe(el);
+  });
+
+  // REEL BUTTON — replace with your actual reel URL
+  document.getElementById('reelBtn').addEventListener('click', function(e) {
+    e.preventDefault();
+    window.open('https://youtube.com', '_blank');
+  });
+
+  // ─── GAME ENGINE ────────────────────────────────────────
+  (function() {
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const GW = 390, GH = 500;
+    canvas.width = GW; canvas.height = GH;
+
+    let gState = 'start';
+    let gScore = 0, gLives = 3, gVisa = 0, gCombo = 0;
+    let gItems = [], gParticles = [], gFrame = 0, gAnimId;
+
+    // Speed config — starts slow, ramps up
+    const SPEED_START = 0.55;   // very gentle at first
+    const SPEED_MAX   = 1.8;    // cap at max
+    const SPAWN_START = 130;    // frames between spawns (slow)
+    const SPAWN_MIN   = 45;     // fastest spawn rate
+
+    let gSpeed = SPEED_START;
+    let gSpawnRate = SPAWN_START;
+
+    const player = { x: GW/2, y: GH - 52, w: 76, h: 46, targetX: GW/2 };
+
+    const GITEMS = [
+      { type:'file',   emoji:'📁', label:'anim.tbbp', pts:10,  good:true,  spd:1.4, w:40 },
+      { type:'ae',     emoji:'🎞', label:'comp.aep',  pts:15,  good:true,  spd:1.6, w:25 },
+      { type:'reel',   emoji:'🎬', label:'DEMO REEL', pts:25,  good:true,  spd:1.9, w:12 },
+      { type:'star',   emoji:'⭐', label:'BONUS!',    pts:30,  good:true,  spd:2.1, w:8  },
+      { type:'reject', emoji:'❌', label:'REJECT',    pts:-20, good:false, spd:1.7, w:18 },
+      { type:'bug',    emoji:'🪲', label:'bug.exe',   pts:-10, good:false, spd:1.3, w:14 },
+    ];
+
+    function pickGItem() {
+      const total = GITEMS.reduce((s,i) => s+i.w, 0);
+      let r = Math.random()*total;
+      for (const it of GITEMS) { r -= it.w; if (r <= 0) return it; }
+      return GITEMS[0];
+    }
+
+    function drawGBG() {
+      const g = ctx.createLinearGradient(0,0,0,GH);
+      g.addColorStop(0,'#1a0533'); g.addColorStop(1,'#0d001f');
+      ctx.fillStyle = g; ctx.fillRect(0,0,GW,GH);
+      ctx.strokeStyle = 'rgba(192,132,252,0.05)'; ctx.lineWidth = 1;
+      for (let x=0;x<GW;x+=32){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,GH);ctx.stroke();}
+      for (let y=0;y<GH;y+=32){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(GW,y);ctx.stroke();}
+      ctx.strokeStyle='rgba(192,132,252,0.25)';ctx.lineWidth=2;
+      ctx.setLineDash([8,6]);
+      ctx.beginPath();ctx.moveTo(0,GH-12);ctx.lineTo(GW,GH-12);ctx.stroke();
+      ctx.setLineDash([]);
+      // mini skyline
+      ctx.fillStyle='rgba(192,132,252,0.04)';
+      [[20,55,38],[68,85,28],[108,38,34],[153,75,24],[188,48,42],[243,65,28],[283,28,38],[333,62,33],[375,80,38]].forEach(([x,h,w])=>{ctx.fillRect(x,GH-12-h,w,h);});
+    }
+
+    function drawGPlayer() {
+      const x=player.x, y=player.y;
+      // tray
+      ctx.beginPath(); ctx.roundRect(x-player.w/2, y+10, player.w, 24, 4);
+      ctx.fillStyle='rgba(192,132,252,0.2)'; ctx.fill();
+      ctx.strokeStyle='#c084fc'; ctx.lineWidth=1.5; ctx.stroke();
+      ctx.font="5px 'Press Start 2P',monospace"; ctx.fillStyle='#c084fc';
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText('HR BOX', x, y+23);
+      // body
+      ctx.beginPath(); ctx.roundRect(x-14,y-26,28,30,5);
+      ctx.fillStyle='#3b0764'; ctx.fill();
+      ctx.strokeStyle='#c084fc'; ctx.lineWidth=1.2; ctx.stroke();
+      // face
+      ctx.beginPath(); ctx.roundRect(x-12,y-42,24,20,4);
+      ctx.fillStyle='#ffcba4'; ctx.fill();
+      ctx.strokeStyle='#d08060'; ctx.lineWidth=1; ctx.stroke();
+      // eyes
+      ctx.fillStyle='#1a0533';
+      ctx.beginPath(); ctx.ellipse(x-5,y-35,2.5,3,0,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(x+5,y-35,2.5,3,0,0,Math.PI*2); ctx.fill();
+      // smile
+      ctx.strokeStyle='#c0603a'; ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.arc(x,y-31,5,0.2,Math.PI-0.2); ctx.stroke();
+      // tie
+      ctx.fillStyle='#ff6eb4';
+      ctx.beginPath(); ctx.moveTo(x,y-24);ctx.lineTo(x-3,y-16);ctx.lineTo(x,y-10);ctx.lineTo(x+3,y-16); ctx.closePath(); ctx.fill();
+      // hair
+      ctx.fillStyle='#4a0080';
+      ctx.beginPath(); ctx.roundRect(x-12,y-46,24,8,4); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(x-12,y-42,4,6,-0.3,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(x+12,y-42,4,6,0.3,0,Math.PI*2); ctx.fill();
+      // arms
+      ctx.strokeStyle='#3b0764'; ctx.lineWidth=6; ctx.lineCap='round';
+      ctx.beginPath(); ctx.moveTo(x-14,y-18); ctx.lineTo(x-player.w/2,y+16);
+      ctx.moveTo(x+14,y-18); ctx.lineTo(x+player.w/2,y+16); ctx.stroke();
+    }
+
+    function drawGItem(item) {
+      const {x,y,good,emoji,label} = item;
+      ctx.globalAlpha = 1;
+      ctx.shadowColor = good ? '#c084fc' : '#ff4466';
+      ctx.shadowBlur = 10;
+      ctx.beginPath(); ctx.arc(x,y,22,0,Math.PI*2);
+      ctx.fillStyle = good ? 'rgba(192,132,252,0.13)' : 'rgba(255,68,102,0.13)'; ctx.fill();
+      ctx.strokeStyle = good ? '#c084fc' : '#ff4466'; ctx.lineWidth=1.5; ctx.stroke();
+      ctx.shadowBlur = 0;
+      ctx.font='22px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(emoji, x, y-3);
+      ctx.font="5px 'Press Start 2P',monospace";
+      ctx.fillStyle = good ? '#ffe566' : '#ff8899';
+      ctx.textBaseline='top'; ctx.fillText(label, x, y+14);
+    }
+
+    function gSpawnParticles(x,y,good) {
+      const cols = good ? ['#ff6eb4','#ffe566','#66eeff','#66ff99'] : ['#ff4466','#ff8844'];
+      for(let i=0;i<10;i++){
+        const a=Math.random()*Math.PI*2, sp=2+Math.random()*3;
+        gParticles.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,r:3+Math.random()*4,
+          color:cols[Math.floor(Math.random()*cols.length)],life:1,decay:0.04+Math.random()*0.03});
+      }
+    }
+
+    function gCheckCollision(item) {
+      return Math.abs(item.x - player.x) < player.w/2+10 && Math.abs(item.y - (player.y+22)) < 24;
+    }
+
+    function gUpdateHUD() {
+      document.getElementById('gScore').textContent = gScore;
+      const pct = Math.min(100, Math.round(gScore / 250 * 100));
+      document.getElementById('gVisaFill').style.width = pct + '%';
+      const h=['','❤','❤❤','❤❤❤'];
+      document.getElementById('gLives').textContent = h[Math.max(0,gLives)]||'💀';
+    }
+
+    function gShowPop(x,y,text,color) {
+      const wrapper = canvas.parentElement; // the position:relative div
+      const canvasRect = canvas.getBoundingClientRect();
+      const wrapRect  = wrapper.getBoundingClientRect();
+      const sx = canvasRect.width / GW;
+      const sy = canvasRect.height / GH;
+      const pop = document.createElement('div');
+      pop.style.cssText = [
+        'position:absolute',
+        `font-family:'Press Start 2P',monospace`,
+        'font-size:11px',
+        `color:${color}`,
+        'pointer-events:none',
+        'z-index:50',
+        'white-space:nowrap',
+        `left:${(canvasRect.left - wrapRect.left) + x * sx}px`,
+        `top:${(canvasRect.top  - wrapRect.top)  + y * sy}px`,
+        'animation:popUp 0.8s ease forwards',
+      ].join(';');
+      pop.textContent = text;
+      wrapper.appendChild(pop);
+      setTimeout(() => pop.remove(), 850);
+    }
+
+    function gLoop() {
+      if (gState !== 'playing') return;
+      gAnimId = requestAnimationFrame(gLoop);
+      gFrame++;
+
+      // Gradual speed ramp tied to score progress toward 250
+      const t = Math.min(1, gScore / 250);
+      gSpeed = SPEED_START + (SPEED_MAX - SPEED_START) * t * t; // ease-in curve
+      gSpawnRate = Math.round(SPAWN_START + (SPAWN_MIN - SPAWN_START) * t);
+
+      if (gFrame % gSpawnRate === 0) {
+        const def = pickGItem();
+        gItems.push({
+          ...def,
+          x: 30 + Math.random()*(GW-60),
+          y: -30,
+          vy: def.spd * gSpeed,
+          wobble: Math.random()*Math.PI*2,
+          ws: 0.03+Math.random()*0.02,
+        });
+      }
+
+      player.x += (player.targetX - player.x) * 0.18;
+
+      drawGBG();
+
+      // particles
+      gParticles = gParticles.filter(p=>p.life>0);
+      gParticles.forEach(p=>{
+        p.x+=p.vx; p.y+=p.vy; p.vy+=0.12; p.life-=p.decay;
+        const r = Math.max(0.01, p.r * p.life);
+        ctx.globalAlpha = Math.max(0, p.life);
+        ctx.fillStyle=p.color;
+        ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI*2); ctx.fill();
+        ctx.globalAlpha=1;
+      });
+
+      gItems = gItems.filter(item => {
+        item.y += item.vy * gSpeed;
+        item.wobble += item.ws;
+        item.x += Math.sin(item.wobble)*0.5;
+
+        if (gCheckCollision(item)) {
+          gSpawnParticles(item.x, item.y, item.good);
+          if (item.good) {
+            gCombo++;
+            const bonus = gCombo>=3 ? Math.floor(item.pts*0.5) : 0;
+            const total = item.pts+bonus;
+            gScore += total;
+            gVisa = Math.min(100, gVisa + (item.type==='reel'?12 : item.type==='star'?15 : 6));
+            gShowPop(item.x, item.y, gCombo>=3?`+${total} 🔥x${gCombo}`:`+${total}`, '#ffe566');
+            if (gScore >= 250) { gEnd('win'); return false; }
+          } else {
+            gCombo = 0; gLives--;
+            gScore = Math.max(0, gScore+item.pts);
+            gShowPop(item.x, item.y, `${item.pts}`, '#ff4466');
+            if (gLives<=0) { gEnd('over'); return false; }
+          }
+          gUpdateHUD(); return false;
+        }
+        if (item.y > GH+10) { if(item.good) gCombo=0; return false; }
+        drawGItem(item);
+        return true;
+      });
+
+      drawGPlayer();
+    }
+
+    function gSetX(clientX) {
+      const rect = canvas.getBoundingClientRect();
+      const x = (clientX - rect.left) * (GW / rect.width);
+      player.targetX = Math.max(player.w/2+5, Math.min(GW-player.w/2-5, x));
+    }
+
+    canvas.addEventListener('mousemove', e => { if(gState==='playing') gSetX(e.clientX); });
+    canvas.addEventListener('touchmove', e => { e.preventDefault(); if(gState==='playing') gSetX(e.touches[0].clientX); }, {passive:false});
+    canvas.addEventListener('touchstart', e => { e.preventDefault(); if(gState==='playing') gSetX(e.touches[0].clientX); }, {passive:false});
+
+    window.gStart = function() {
+      gState='playing'; gScore=0; gLives=3; gVisa=0; gCombo=0;
+      gItems=[]; gParticles=[]; gFrame=0; gSpeed=SPEED_START; gSpawnRate=SPAWN_START;
+      player.x=GW/2; player.targetX=GW/2;
+      ['gScreenStart','gScreenOver','gScreenWin'].forEach(id=>document.getElementById(id).classList.add('g-hidden'));
+      gUpdateHUD(); cancelAnimationFrame(gAnimId); gLoop();
+    };
+
+    function gEnd(result) {
+      gState=result; cancelAnimationFrame(gAnimId);
+      if (result==='win') {
+        document.getElementById('gWinScore').textContent = gScore+' pts';
+        document.getElementById('gScreenWin').classList.remove('g-hidden');
+      } else {
+        document.getElementById('gFinalScore').textContent = gScore+' pts';
+        document.getElementById('gScreenOver').classList.remove('g-hidden');
+      }
+    }
+
+    window.gContact = function() {
+      window.location.href='mailto:birdaldenizc@gmail.com?subject=Birdal%27%C4%B1%20i%C5%9Fe%20ald%C4%B1m!%20%F0%9F%8E%AE&body=Merhaba%20Birdal%2C%0A%0AOyununu%20oynadım%20ve%20seni%20işe%20almaya%20karar%20verdim!%20🎉';
+    };
+
+    // add popUp keyframe if not present
+    if (!document.getElementById('gPopStyle')) {
+      const s = document.createElement('style');
+      s.id = 'gPopStyle';
+      s.textContent = '@keyframes popUp{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-50px) scale(1.3)}}';
+      document.head.appendChild(s);
+    }
+
+    // draw initial frame
+    drawGBG(); drawGPlayer();
+  })();
+</script>
