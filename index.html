@@ -918,13 +918,13 @@
 
 <!-- NAV DOTS -->
 <nav class="nav-dots" id="navDots">
-  <div class="nav-dot active" onclick="scrollTo('#hero')"></div>
-  <div class="nav-dot" onclick="scrollTo('#about')"></div>
-  <div class="nav-dot" onclick="scrollTo('#skills')"></div>
-  <div class="nav-dot" onclick="scrollTo('#projects')"></div>
-  <div class="nav-dot" onclick="scrollTo('#game')"></div>
-  <div class="nav-dot" onclick="scrollTo('#cv')"></div>
-  <div class="nav-dot" onclick="scrollTo('#contact')"></div>
+  <div class="nav-dot active" onclick="scrollToSection('#hero')"></div>
+  <div class="nav-dot" onclick="scrollToSection('#about')"></div>
+  <div class="nav-dot" onclick="scrollToSection('#skills')"></div>
+  <div class="nav-dot" onclick="scrollToSection('#projects')"></div>
+  <div class="nav-dot" onclick="scrollToSection('#game')"></div>
+  <div class="nav-dot" onclick="scrollToSection('#cv')"></div>
+  <div class="nav-dot" onclick="scrollToSection('#contact')"></div>
 </nav>
 
 <!-- HERO -->
@@ -1377,7 +1377,7 @@
 
   window.addEventListener('scroll', updateDots, { passive: true });
 
-  function scrollTo(hash) {
+  function scrollToSection(hash) {
     const el = document.querySelector(hash);
     if (el) el.scrollIntoView({ behavior: 'smooth' });
   }
@@ -1404,6 +1404,26 @@
     e.preventDefault();
     window.open('https://vimeo.com/1126691055', '_blank');
   });
+
+
+  // ── roundRect polyfill (Safari / older browsers) ──────────
+  if (!CanvasRenderingContext2D.prototype.roundRect) {
+    CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+      r = Math.min(typeof r === 'number' ? r : r[0], w / 2, h / 2);
+      this.beginPath();
+      this.moveTo(x + r, y);
+      this.lineTo(x + w - r, y);
+      this.quadraticCurveTo(x + w, y, x + w, y + r);
+      this.lineTo(x + w, y + h - r);
+      this.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      this.lineTo(x + r, y + h);
+      this.quadraticCurveTo(x, y + h, x, y + h - r);
+      this.lineTo(x, y + r);
+      this.quadraticCurveTo(x, y, x + r, y);
+      this.closePath();
+      return this;
+    };
+  }
 
   // ─── GAME ENGINE ────────────────────────────────────────
   (function() {
